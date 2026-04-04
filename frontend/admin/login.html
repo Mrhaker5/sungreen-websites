@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - SunGreen</title>
+    <link rel="stylesheet" href="../auth-style.css">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Admin Panel</h1>
+            <p>Restricted access. Admins only.</p>
+        </div>
+        <div id="alertMsg" class="msg-alert"></div>
+        <form id="adminLoginForm">
+            <div class="form-group">
+                <label for="email">Admin Email</label>
+                <input type="email" id="email" class="form-control" placeholder="admin@sungreenenergies.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span class="btn-text">Sign In as Admin</span>
+                <span class="spinner"></span>
+            </button>
+        </form>
+        <div class="auth-footer">
+            <a href="../index.html">← Back to Website</a>
+        </div>
+    </div>
+    <script src="../config.js"></script>
+    <script>
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const alertEl = document.getElementById('alertMsg');
+            const btn = document.getElementById('submitBtn');
+            btn.classList.add('loading'); btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alertEl.className = 'msg-alert error';
+                    alertEl.textContent = data.error || 'Login failed';
+                } else if (data.user.role !== 'admin') {
+                    alertEl.className = 'msg-alert error';
+                    alertEl.textContent = 'Access denied. Not an admin account.';
+                } else {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    alertEl.className = 'msg-alert success';
+                    alertEl.textContent = 'Welcome back! Redirecting...';
+                    setTimeout(() => window.location.href = 'index.html', 1000);
+                }
+            } catch(err) {
+                alertEl.className = 'msg-alert error';
+                alertEl.textContent = 'Network error.';
+            } finally {
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

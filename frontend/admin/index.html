@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SunGreen</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h2>☀️ SunGreen Admin</h2>
+            <p>Management Panel</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="active"><span class="icon">📊</span><span>Dashboard</span></a>
+            <a href="products.html"><span class="icon">📦</span><span>Products</span></a>
+            <a href="orders.html"><span class="icon">🛒</span><span>Orders</span></a>
+            <a href="users.html"><span class="icon">👥</span><span>Users</span></a>
+            <a href="notifications.html"><span class="icon">🔔</span><span>Notifications</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <button id="adminLogoutBtn">🚪 Logout</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Dashboard Overview</h1>
+        </div>
+
+        <div id="adminAlert" class="admin-alert"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalRevenue">₹0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Products</div>
+            </div>
+        </div>
+
+        <div class="data-table-container recent-orders-table">
+            <div class="data-table-header">
+                <h3>Recent Orders</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="recentOrdersBody">
+                    <tr><td colspan="5" style="text-align:center; color:var(--admin-muted);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        if (!checkAdmin()) throw new Error('Not admin');
+        initSidebar();
+
+        async function loadDashboard() {
+            try {
+                const res = await adminFetch('/admin/dashboard');
+                const data = await res.json();
+
+                document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                document.getElementById('totalOrders').textContent = data.totalOrders || 0;
+                document.getElementById('totalRevenue').textContent = `₹${Number(data.totalRevenue || 0).toLocaleString('en-IN')}`;
+                document.getElementById('totalProducts').textContent = data.totalProducts || 0;
+
+                const tbody = document.getElementById('recentOrdersBody');
+                if (data.recentOrders && data.recentOrders.length > 0) {
+                    tbody.innerHTML = data.recentOrders.map(o => `
+                        <tr>
+                            <td>#${o.id}</td>
+                            <td>${o.username}</td>
+                            <td>₹${Number(o.total).toLocaleString('en-IN')}</td>
+                            <td><span class="badge badge-${o.status}">${o.status}</span></td>
+                            <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--admin-muted);">No orders yet</td></tr>';
+                }
+            } catch(e) {
+                showAdminAlert('Failed to load dashboard');
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

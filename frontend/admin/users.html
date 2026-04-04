@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - SunGreen Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand"><h2>☀️ SunGreen Admin</h2><p>Management Panel</p></div>
+        <nav class="sidebar-nav">
+            <a href="index.html"><span class="icon">📊</span><span>Dashboard</span></a>
+            <a href="products.html"><span class="icon">📦</span><span>Products</span></a>
+            <a href="orders.html"><span class="icon">🛒</span><span>Orders</span></a>
+            <a href="users.html" class="active"><span class="icon">👥</span><span>Users</span></a>
+            <a href="notifications.html"><span class="icon">🔔</span><span>Notifications</span></a>
+        </nav>
+        <div class="sidebar-footer"><button id="adminLogoutBtn">🚪 Logout</button></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header"><h1>Users</h1></div>
+        <div id="adminAlert" class="admin-alert"></div>
+
+        <div class="data-table-container">
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Action</th></tr>
+                </thead>
+                <tbody id="usersBody">
+                    <tr><td colspan="7" style="text-align:center; color:var(--admin-muted);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        if (!checkAdmin()) throw new Error('Not admin');
+        initSidebar();
+
+        async function loadUsers() {
+            try {
+                const res = await adminFetch('/admin/users');
+                const users = await res.json();
+                const tbody = document.getElementById('usersBody');
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No users</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.username}</td>
+                        <td>${u.email}</td>
+                        <td><span class="badge badge-${u.role}">${u.role}</span></td>
+                        <td><span class="badge ${u.is_blocked ? 'badge-blocked' : 'badge-active'}">${u.is_blocked ? 'Blocked' : 'Active'}</span></td>
+                        <td>${new Date(u.created_at).toLocaleDateString('en-IN')}</td>
+                        <td>
+                            ${u.role !== 'admin' ? `
+                                <button class="btn ${u.is_blocked ? 'btn-primary' : 'btn-danger'} btn-sm" onclick="toggleBlock(${u.id}, ${u.is_blocked ? 'false' : 'true'})">
+                                    ${u.is_blocked ? 'Unblock' : 'Block'}
+                                </button>
+                            ` : '<span style="color:var(--admin-muted);">—</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) { showAdminAlert('Failed to load users'); }
+        }
+
+        window.toggleBlock = async function(userId, block) {
+            try {
+                const res = await adminFetch(`/admin/users/${userId}/block`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ is_blocked: block })
+                });
+                if (res.ok) {
+                    showAdminAlert(block ? 'User blocked' : 'User unblocked', false);
+                    loadUsers();
+                }
+            } catch(e) { showAdminAlert('Failed'); }
+        };
+
+        loadUsers();
+    </script>
+</body>
+</html>

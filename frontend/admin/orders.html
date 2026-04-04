@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - SunGreen Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand"><h2>☀️ SunGreen Admin</h2><p>Management Panel</p></div>
+        <nav class="sidebar-nav">
+            <a href="index.html"><span class="icon">📊</span><span>Dashboard</span></a>
+            <a href="products.html"><span class="icon">📦</span><span>Products</span></a>
+            <a href="orders.html" class="active"><span class="icon">🛒</span><span>Orders</span></a>
+            <a href="users.html"><span class="icon">👥</span><span>Users</span></a>
+            <a href="notifications.html"><span class="icon">🔔</span><span>Notifications</span></a>
+        </nav>
+        <div class="sidebar-footer"><button id="adminLogoutBtn">🚪 Logout</button></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header"><h1>Orders</h1></div>
+        <div id="adminAlert" class="admin-alert"></div>
+
+        <div class="data-table-container">
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Customer</th><th>Email</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                </thead>
+                <tbody id="ordersBody">
+                    <tr><td colspan="7" style="text-align:center; color:var(--admin-muted);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        if (!checkAdmin()) throw new Error('Not admin');
+        initSidebar();
+
+        async function loadOrders() {
+            try {
+                const res = await adminFetch('/orders/all');
+                const orders = await res.json();
+                const tbody = document.getElementById('ordersBody');
+
+                if (!Array.isArray(orders) || orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--admin-muted);">No orders yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td>#${o.id}</td>
+                        <td>${o.username}</td>
+                        <td>${o.email}</td>
+                        <td>₹${Number(o.total).toLocaleString('en-IN')}</td>
+                        <td><span class="badge badge-${o.status}">${o.status}</span></td>
+                        <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                        <td>
+                            <select class="status-select" data-id="${o.id}" onchange="updateStatus(this)">
+                                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) { showAdminAlert('Failed to load orders'); }
+        }
+
+        window.updateStatus = async function(select) {
+            const orderId = select.dataset.id;
+            const status = select.value;
+            try {
+                const res = await adminFetch(`/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status })
+                });
+                if (res.ok) {
+                    showAdminAlert(`Order #${orderId} updated to ${status}`, false);
+                    loadOrders();
+                } else {
+                    const data = await res.json();
+                    showAdminAlert(data.error || 'Failed');
+                }
+            } catch(e) { showAdminAlert('Network error'); }
+        };
+
+        loadOrders();
+    </script>
+</body>
+</html>

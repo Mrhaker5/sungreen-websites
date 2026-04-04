@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - SunGreen Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand"><h2>☀️ SunGreen Admin</h2><p>Management Panel</p></div>
+        <nav class="sidebar-nav">
+            <a href="index.html"><span class="icon">📊</span><span>Dashboard</span></a>
+            <a href="products.html"><span class="icon">📦</span><span>Products</span></a>
+            <a href="orders.html"><span class="icon">🛒</span><span>Orders</span></a>
+            <a href="users.html"><span class="icon">👥</span><span>Users</span></a>
+            <a href="notifications.html" class="active"><span class="icon">🔔</span><span>Notifications</span></a>
+        </nav>
+        <div class="sidebar-footer"><button id="adminLogoutBtn">🚪 Logout</button></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header"><h1>Send Notifications</h1></div>
+        <div id="adminAlert" class="admin-alert"></div>
+
+        <div class="data-table-container" style="max-width:600px;">
+            <div style="padding:2rem;">
+                <form id="notifForm">
+                    <div class="form-group">
+                        <label>Recipient</label>
+                        <select id="notifTarget" style="width:100%; padding:0.7rem; background:var(--admin-bg); border:1px solid var(--admin-border); border-radius:8px; color:var(--admin-text); font-family:inherit;">
+                            <option value="all">📢 All Users</option>
+                            <option value="single">👤 Single User (by ID)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="userIdGroup" style="display:none;">
+                        <label>User ID</label>
+                        <input type="number" id="notifUserId" placeholder="Enter user ID" style="width:100%; padding:0.7rem; background:var(--admin-bg); border:1px solid var(--admin-border); border-radius:8px; color:var(--admin-text);">
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="notifTitle" placeholder="Notification title" required style="width:100%; padding:0.7rem; background:var(--admin-bg); border:1px solid var(--admin-border); border-radius:8px; color:var(--admin-text);">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="notifMessage" rows="4" placeholder="Write your notification message..." required style="width:100%; padding:0.7rem; background:var(--admin-bg); border:1px solid var(--admin-border); border-radius:8px; color:var(--admin-text); font-family:inherit;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; padding:0.8rem;">🔔 Send Notification</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        if (!checkAdmin()) throw new Error('Not admin');
+        initSidebar();
+
+        document.getElementById('notifTarget').addEventListener('change', (e) => {
+            document.getElementById('userIdGroup').style.display = e.target.value === 'single' ? '' : 'none';
+        });
+
+        document.getElementById('notifForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const target = document.getElementById('notifTarget').value;
+            const title = document.getElementById('notifTitle').value;
+            const message = document.getElementById('notifMessage').value;
+            const userId = document.getElementById('notifUserId').value;
+
+            const body = { title, message };
+            if (target === 'all') body.send_to_all = true;
+            else body.user_id = parseInt(userId);
+
+            try {
+                const res = await adminFetch('/admin/notifications', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAdminAlert(data.message || 'Notification sent!', false);
+                    document.getElementById('notifForm').reset();
+                } else {
+                    showAdminAlert(data.error || 'Failed to send');
+                }
+            } catch(e) { showAdminAlert('Network error'); }
+        });
+    </script>
+</body>
+</html>

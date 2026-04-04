@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - SunGreen Energy</title>
+    <meta name="description" content="Browse our solar products and energy solutions.">
+    <link rel="stylesheet" href="shop.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="index.html" class="brand">
+            <img src="logo.jpeg" alt="SunGreen">
+            <span>SUNGREEN</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="shop.html" class="active">Shop</a>
+            <a href="orders.html">My Orders</a>
+            <a href="cart.html" class="cart-icon" id="cartIconNav">🛒<span class="cart-badge" id="cartBadge" style="display:none;">0</span></a>
+            <div style="position:relative;">
+                <a href="#" class="cart-icon" id="notifIcon">🔔<span class="notif-badge" id="notifBadge" style="display:none;">0</span></a>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-dropdown-header">Notifications</div>
+                    <div id="notifList"><div class="notif-item"><div class="notif-message">No notifications.</div></div></div>
+                </div>
+            </div>
+            <div class="user-menu" id="userMenu" style="display:none;">
+                <span class="user-name" id="userName"></span>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+            <a href="login.html" id="loginLink">Login</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">Our Solar Products</h1>
+        <p class="page-subtitle">Explore our range of premium solar solutions for homes and businesses.</p>
+        <div id="alertMsg" class="alert"></div>
+        <div class="product-grid" id="productGrid">
+            <div class="empty-state" id="loadingState">
+                <p>Loading products...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="shop.js"></script>
+</body>
+</html>
