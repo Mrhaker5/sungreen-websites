@@ -5,4 +5,4 @@ Disallow: /api/
 Disallow: /orders.html
 Disallow: /checkout.html
 
-Sitemap: https://sungreenenergy.vercel.app/sitemap.xml
+Sitemap: https://www.sungreenenergies.com/sitemap.xml
