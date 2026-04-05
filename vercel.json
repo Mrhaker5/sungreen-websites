@@ -2,7 +2,20 @@
   "version": 2,
   "routes": [
     { "src": "/admin/(.*)", "dest": "/frontend/admin/$1" },
-    { "src": "/(.*\\.(html|css|js|jpeg|jpg|png|svg|ico))", "dest": "/frontend/$1" },
+    { 
+      "src": "/(.*\\.(css|js|jpeg|jpg|png|svg|ico))", 
+      "dest": "/frontend/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    { 
+      "src": "/(.*\\.(html|xml|txt))", 
+      "dest": "/frontend/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400"
+      }
+    },
     { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
 }

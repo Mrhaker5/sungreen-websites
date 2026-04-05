@@ -20,7 +20,7 @@ html {
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     /* High quality background with overlay handling */
     background: linear-gradient(rgba(236, 254, 255, 0.5), rgba(236, 254, 255, 0.5)), 
                 url('https://images.pexels.com/photos/11145690/pexels-photo-11145690.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
