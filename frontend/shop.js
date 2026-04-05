@@ -45,12 +45,16 @@ async function updateCartBadge() {
     if (getToken()) {
         try {
             const res = await fetch(`${API_URL}/cart`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+            if (!res.ok) throw new Error('Cart fetch failed');
             const items = await res.json();
             if (Array.isArray(items) && items.length > 0) {
                 badge.textContent = items.reduce((s, i) => s + i.quantity, 0);
                 badge.style.display = 'flex';
             } else { badge.style.display = 'none'; }
-        } catch(e) { badge.style.display = 'none'; }
+        } catch(e) { 
+            console.error('Cart badge error:', e);
+            badge.style.display = 'none'; 
+        }
     } else {
         const cart = JSON.parse(localStorage.getItem('guestCart') || '[]');
         if (cart.length > 0) {
@@ -98,12 +102,20 @@ async function loadNotifications() {
 
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
+    if (!grid) return;
+    
     try {
+        console.log('Fetching products from:', `${API_URL}/products`);
         const res = await fetch(`${API_URL}/products`);
+        
+        if (!res.ok) {
+            throw new Error(`Failed to fetch: ${res.status}`);
+        }
+        
         const products = await res.json();
 
         if (!Array.isArray(products) || products.length === 0) {
-            grid.innerHTML = '<div class="empty-state"><h3>No products yet</h3><p>Check back soon for our solar product listings!</p></div>';
+            grid.innerHTML = '<div class="empty-state"><h3>No products found</h3><p>We are updating our catalog. Please check back later!</p></div>';
             return;
         }
 
@@ -131,7 +143,8 @@ async function loadProducts() {
             btn.addEventListener('click', () => addToCart(btn.dataset));
         });
     } catch(err) {
-        grid.innerHTML = '<div class="empty-state"><h3>Error loading products</h3><p>Please try again later.</p></div>';
+        console.error('Load products error:', err);
+        grid.innerHTML = `<div class="empty-state"><h3>Connection Issue</h3><p>We couldn't connect to our services. Please check your internet or try again later.</p></div>`;
     }
 }
 

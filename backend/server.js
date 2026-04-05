@@ -25,10 +25,13 @@ app.use(cors({
         'http://127.0.0.1:5500',
         'http://localhost:3000',
         'https://www.sungreenenergies.com',
+        'https://sungreenenergies.com',
         'https://sungreen-websites.vercel.app',
         process.env.FRONTEND_URL || ''
     ].filter(Boolean),
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Database config
@@ -147,7 +150,9 @@ async function initDB() {
         app.use('/api/notifications', require('./routes/notifications')(pool));
 
     } catch (err) {
-        console.error('Error connecting to TiDB Cloud:', err);
+        console.error('CRITICAL: Database Initialization Failed!');
+        console.error('Error details:', err.message);
+        console.error('Check your TiDB credentials in .env');
     }
 }
 
